@@ -17,6 +17,6 @@
 3. Install python requirements ```pip install -r requirements.txt```
 4. Database is SQLite, local, and execute ```python manage.py migrate```
 5. Start the project ```python manage.py runserver```
-6. Open website and register a user in /users/register/ endpoint
-7. Login with registered credentials in /users/token/ endpoint
+6. Open website and register a user in /register/ endpoint
+7. Login with registered credentials in /token/ endpoint
 8. In swagger click "Authorize" button and type ```Bearer <access token from response>```
