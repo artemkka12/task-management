@@ -119,8 +119,6 @@ REST_FRAMEWORK = {
         ('rest_framework.permissions.ISAuthenticated',),
     'DEFAULT_RENDERS_CLASSES':
         ('rest_framework.renders.JSONRenderer',),
-    'EXCEPTION_HANDLER': 'apps.common.exceptions.custom_exception_handler',
-
 }
 
 SWAGGER_SETTINGS = {

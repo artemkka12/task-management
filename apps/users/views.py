@@ -33,7 +33,7 @@ class UserRegisterView(GenericAPIView):
         return Response(UserSerializer(user).data)
 
 
-class UserView(GenericAPIView):
+class UserListView(GenericAPIView):
     serializer_class = UserSerializer
 
     permission_classes = (AllowAny,)
