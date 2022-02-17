@@ -129,5 +129,3 @@ class SearchTaskView(GenericAPIView):
         tasks = Task.objects.filter(title__icontains=value)
 
         return Response(TaskSerializer(tasks, many=True).data)
-
-
