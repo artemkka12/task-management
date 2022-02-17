@@ -121,3 +121,13 @@ class DeleteTaskView(GenericAPIView):
         return Response({'status': HTTP_200_OK})
 
 
+class SearchTaskView(GenericAPIView):
+    serializer_class = TaskSerializer
+    queryset = Task.objects.all()
+
+    def get(self, request, value):
+        tasks = Task.objects.filter(title__icontains=value)
+
+        return Response(TaskSerializer(tasks, many=True).data)
+
+
