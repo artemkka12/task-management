@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from drf_util.decorators import serialize_decorator
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from drf_util.decorators import serialize_decorator
 
 from apps.users.serializers import UserSerializer
 
