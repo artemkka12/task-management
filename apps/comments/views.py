@@ -1,9 +1,12 @@
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from drf_util.decorators import serialize_decorator
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from apps.comments.models import Comment
 from apps.comments.serializers import CommentSerializer
+from apps.tasks.models import Task
 
 
 class CreateCommentView(GenericAPIView):
@@ -16,6 +19,16 @@ class CreateCommentView(GenericAPIView):
             text=validated_data['text'],
             task=validated_data['task']
         )
+        task = Task.objects.get(id=validated_data['task'].id)
+        user = User.objects.get(id=task.owner.id)
+
+        send_mail(
+            'Hello!',
+            'Your task was commented!'
+            , 'artemkka2280@gmail.com',
+            [user.email],
+        )
+
 
         comment.save()
 

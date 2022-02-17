@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
@@ -81,13 +82,19 @@ class CompletedTaskView(GenericAPIView):
 
 class AssignTaskView(GenericAPIView):
     queryset = Task.objects.all()
-    serializer_class = TaskItemSerializer
 
     def patch(self, request, task_id, user_id):
         task = get_object_or_404(Task.objects.filter(pk=task_id))
         user = get_object_or_404(User.objects.filter(pk=user_id))
         task.owner = user
         task.save()
+
+        send_mail(
+            'Hello!',
+            'A task was assigned to you!'
+            , 'artemkka2280@gmail.com',
+            [user.email],
+        )
 
         return Response(TaskItemSerializer(task).data)
 
@@ -105,6 +112,7 @@ class CompleteTaskView(GenericAPIView):
 
 
 class DeleteTaskView(GenericAPIView):
+    queryset = Task.objects.all()
 
     def delete(self, request, pk):
         task = get_object_or_404(Task.objects.filter(pk=pk))
