@@ -13,7 +13,6 @@
 
 ### Setup
 1. Clone the repository ```git clone https://github.com/artemkka12/task-management.git```
-2. ```cd task-management```
 3. Install python requirements ```pip install -r requirements.txt```
 4. Database is SQLite, local, and execute ```python manage.py migrate```
 5. Start the project ```python manage.py runserver```

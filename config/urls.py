@@ -8,4 +8,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('apps.users.urls')),
     path('task/', include('apps.tasks.urls')),
+    path('comment/', include('apps.comments.urls')),
 ]
