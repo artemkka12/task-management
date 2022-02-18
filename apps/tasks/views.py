@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from drf_util.decorators import serialize_decorator
 from rest_framework.status import HTTP_200_OK
 
+from apps.comments.models import Comment
 from apps.tasks.models import Task
 from apps.tasks.serializers import (TaskCreateSerializer,
                                     TaskListSerializer,
@@ -101,12 +102,21 @@ class AssignTaskView(GenericAPIView):
 
 class CompleteTaskView(GenericAPIView):
     queryset = Task.objects.all()
-    serializer_class = TaskItemSerializer
 
     def patch(self, request, pk):
         task = get_object_or_404(Task.objects.filter(pk=pk))
         task.completed = True
         task.save()
+
+        users = User.objects.filter(comments__task=task.pk).distinct()
+        for user in users:
+            print(user.email)
+            send_mail(
+                'Hello!',
+                'Task which you commented was completed!'
+                , 'artemkka2280@gmail.com',
+                [user.email],
+            )
 
         return Response(TaskItemSerializer(task).data)
 

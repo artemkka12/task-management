@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.comments.serializers import CommentSerializer
 from apps.tasks.models import Task
 
 
@@ -22,7 +23,8 @@ class TaskListSerializer(serializers.ModelSerializer):
 
 
 class TaskItemSerializer(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True)
 
     class Meta:
         model = Task
-        fields = ('id', 'title', 'description', 'completed', 'owner')
+        fields = ('id', 'title', 'description', 'completed', 'owner', 'comments')
