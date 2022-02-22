@@ -12,4 +12,11 @@ class Task(models.Model):
         return f'{self.title}'
 
 
+class Timelog(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    start = models.DateTimeField()
+    stop = models.DateTimeField(null=True, blank=True)
 
+    def __str__(self):
+        return f'{self.task}'
