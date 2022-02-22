@@ -7,10 +7,6 @@
 3. https://restfulapi.net/
 4. https://swagger.io/docs/specification/2-0/what-is-swagger/
 
-## Requirements
-* [Python 3.8](https://docs.python.org/3.8)
-* [Django 3.0](https://docs.djangoproject.com/en/3.0)
-
 ### Setup
 1. Clone the repository ```git clone https://github.com/artemkka12/task-management.git```
 3. Install python requirements ```pip install -r requirements.txt```
