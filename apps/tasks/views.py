@@ -12,7 +12,7 @@ from rest_framework.serializers import Serializer
 from rest_framework.status import HTTP_200_OK
 from rest_framework.viewsets import ModelViewSet
 
-from apps.tasks.models import Task, Timelog
+from apps.tasks.models import Task, Timelog, Timer
 from apps.tasks.serializers import (TaskSerializer, AssignTaskSerializer, ManualTimeLogSerializer)
 from config.settings import EMAIL_HOST_USER
 
@@ -76,66 +76,96 @@ class TaskViewSet(ModelViewSet):
     def start_time_log(self, request, *args, **kwargs):
         task = self.get_object()
         user = request.user
+        timer = Timer.objects.create(
+            owner=user,
+            task=task,
+        )
+        timer.save()
+        timer.start()
+        # log = Timelog.objects.filter(task=task).last()
+        #
+        # if log is not None and log.is_running is False:
+        #     raise ValidationError('You cannot start task')
+        # else:
+        #     log = Timelog.objects.create(
+        #         task=task,
+        #         start=timezone.now(),
+        #         stop=None,
+        #         duration=None,
+        #         is_running=True,
+        #         owner=user
+        #     )
+        #
+        #     log.save()
 
-        log = Timelog.objects.filter(task=task).last()
+        return Response({'status': HTTP_200_OK})
 
-        if log is not None and log.is_running is False:
-            raise ValidationError('You cannot start task')
-        else:
-            log = Timelog.objects.create(
-                task=task,
-                start=timezone.now(),
-                stop=None,
-                duration=None,
-                is_running=True,
-                owner=user
-            )
+    @action(methods=['post'], detail=True, serializer_class=Serializer)
+    def pause_time_log(self, request, *args, **kwargs):
+        task = self.get_object()
+        user = request.user
+        timer = Timer.objects.filter(
+            owner=user,
+            task=task,
+        ).last()
+        timer.pause()
 
-            log.save()
-
-            return Response({'status': HTTP_200_OK})
+        return Response({'status': HTTP_200_OK, 'time spent': timer.total_duration})
 
     @action(methods=['post'], detail=True, serializer_class=Serializer)
     def stop_time_log(self, request, *args, **kwargs):
         task = self.get_object()
-
-        log = Timelog.objects.filter(task=task).last()
-
-        if log.is_running is False and log.stop is not None:
-            raise ValidationError('You cannot stop task')
-        else:
-            log.stop = timezone.now()
-            log.is_running = False
-            log.duration = (log.stop - log.start).seconds / 60
-            log.save()
-
-            return Response({'status': HTTP_200_OK, 'time spent': log.duration})
-
-    @action(methods=['post'], detail=True, serializer_class=ManualTimeLogSerializer)
-    def manual_time_log(self, request, *args, **kwargs):
-        task = self.get_object()
         user = request.user
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
-        log = Timelog.objects.filter(task=task).last()
+        timer = Timer.objects.filter(
+            owner=user,
+            task=task,
+        ).last()
+        timer.stop()
 
-        if log is not None and log.is_running is True:
-            raise ValidationError('You cannot start task')
-        else:
-            log = Timelog.objects.create(
-                task=task,
-                start=validated_data['start'],
-                stop=validated_data['start'] + timezone.timedelta(minutes=validated_data['duration']),
-                duration=validated_data['duration'],
-                is_running=False,
-                owner=user
-            )
+        return Response({'status': HTTP_200_OK, 'time spent': timer.total_duration})
 
-            log.save()
 
-            return Response({'status': HTTP_200_OK, 'time spent': log.duration})
 
+    # @action(methods=['post'], detail=True, serializer_class=Serializer)
+    # def stop_time_log(self, request, *args, **kwargs):
+    #     task = self.get_object()
+    #
+    #     log = Timelog.objects.filter(task=task).last()
+    #
+    #     if log.is_running is False and log.stop is not None:
+    #         raise ValidationError('You cannot stop task')
+    #     else:
+    #         log.stop = timezone.now()
+    #         log.is_running = False
+    #         log.duration = (log.stop - log.start).seconds / 60
+    #         log.save()
+    #
+    #         return Response({'status': HTTP_200_OK, 'time spent': log.duration})
+    #
+    # @action(methods=['post'], detail=True, serializer_class=ManualTimeLogSerializer)
+    # def manual_time_log(self, request, *args, **kwargs):
+    #     task = self.get_object()
+    #     user = request.user
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     validated_data = serializer.validated_data
+    #     log = Timelog.objects.filter(task=task).last()
+    #
+    #     if log is not None and log.is_running is True:
+    #         raise ValidationError('You cannot start task')
+    #     else:
+    #         log = Timelog.objects.create(
+    #             task=task,
+    #             start=validated_data['start'],
+    #             stop=validated_data['start'] + timezone.timedelta(minutes=validated_data['duration']),
+    #             duration=validated_data['duration'],
+    #             is_running=False,
+    #             owner=user
+    #         )
+    #
+    #         log.save()
+    #
+    #         return Response({'status': HTTP_200_OK, 'time spent': log.duration})
 
 class SearchTaskView(GenericAPIView):
     serializer_class = TaskSerializer
@@ -145,36 +175,3 @@ class SearchTaskView(GenericAPIView):
         tasks = Task.objects.filter(title__icontains=value)
 
         return Response(TaskSerializer(tasks, many=True).data)
-
-
-# class StartLogTimeView(GenericAPIView):
-#     serializer_class = TimeLogSerializer
-#     queryset = Timelog.objects.all()
-#
-#     @serialize_decorator(TimeLogSerializer)
-#     def post(self, request, pk):
-#
-#         log = Timelog.objects.create(
-#             task=Task.objects.get(pk=pk),
-#             start=timezone.now(),
-#             stop=timezone.now()
-#         )
-#
-#         log.save()
-#
-#         return Response({'log id': log.pk})
-#
-#
-# class StopLogTimeView(GenericAPIView):
-#     serializer_class = TimeLogSerializer
-#     queryset = Timelog.objects.all()
-#
-#     @serialize_decorator(TimeLogSerializer)
-#     def post(self, request, pk):
-#
-#         log = Timelog.objects.filter(task_id=pk).last()
-#         log.stop = timezone.now()
-#
-#         log.save()
-#
-#         return Response({'spent time': log.stop - log.start})

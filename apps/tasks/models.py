@@ -18,17 +18,15 @@ class Task(models.Model):
 class Timelog(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    start = models.DateTimeField()
+    start = models.DateTimeField(null=True, blank=True)
     stop = models.DateTimeField(null=True, blank=True)
-    duration = models.FloatField(null=True, blank=True)
-    is_running = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.task}'
 
 
 class Timer(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     is_stopped = models.BooleanField(default=False)
     is_running = models.BooleanField(default=False)
@@ -50,11 +48,19 @@ class Timer(models.Model):
 
         if self.is_running:
             self.duration += timezone.now() - self.started_at
-            self.started_at = None
+            self.started_at = self.started_at
             self.is_running = False
             self.save()
 
             # Todo: create Timelog
+            timelog = Timelog.objects.create(
+                task=self.task,
+                owner=self.owner,
+                start=self.started_at,
+                stop=timezone.now()
+            )
+
+            timelog.save()
 
     def reset(self):
         if self.is_stopped:
