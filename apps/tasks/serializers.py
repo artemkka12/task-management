@@ -36,4 +36,18 @@ class TimeLogSerializer(serializers.ModelSerializer):
             'start': {'read_only': True},
             'stop': {'read_only': True},
             'owner': {'read_only': True},
+            'is_running': {'read_only': True},
+            'duration': {'read_only': True},
+        }
+
+
+class ManualTimeLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Timelog
+        fields = '__all__'
+        extra_kwargs = {
+            'task': {'read_only': True},
+            'stop': {'read_only': True},
+            'owner': {'read_only': True},
+            'is_running': {'read_only': True},
         }

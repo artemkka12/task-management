@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -113,6 +114,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+# DATE_FORMAT = "%Y-%m-%d %H:%m"
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':
         ('rest_framework_simplejwt.authentication.JWTAuthentication',),
@@ -120,6 +123,22 @@ REST_FRAMEWORK = {
         ('rest_framework.permissions.ISAuthenticated',),
     'DEFAULT_RENDERS_CLASSES':
         ('rest_framework.renders.JSONRenderer',),
+    # "DATE_INPUT_FORMATS": [("%m"), ],
+
+}
+
+JWT_AUTH = {
+    # how long the original token is valid for
+    'JWT_EXPIRATION_DELTA': timedelta(days=2),
+
+    # allow refreshing of tokens
+    'JWT_ALLOW_REFRESH': True,
+
+    # this is the maximum time AFTER the token was issued that
+    # it can be refreshed.  exprired tokens can't be refreshed.
+    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
+
+    'JWT_VERIFY_EXPIRATION': False,
 }
 
 SWAGGER_SETTINGS = {

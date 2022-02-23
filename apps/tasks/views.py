@@ -1,16 +1,20 @@
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.utils import timezone
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.serializers import Serializer
 
 from rest_framework.status import HTTP_200_OK
 from rest_framework.viewsets import ModelViewSet
 
-from apps.tasks.models import Task
-from apps.tasks.serializers import (TaskSerializer, AssignTaskSerializer)
+from apps.tasks.models import Task, Timelog
+from apps.tasks.serializers import (TaskSerializer, AssignTaskSerializer, ManualTimeLogSerializer)
+from config.settings import EMAIL_HOST_USER
 
 
 class TaskViewSet(ModelViewSet):
@@ -36,7 +40,7 @@ class TaskViewSet(ModelViewSet):
             send_mail(
                 'Hello!',
                 'Task which you commented was completed!'
-                , 'artemkka2280@gmail.com',
+                , EMAIL_HOST_USER,
                 [user.email],
             )
 
@@ -62,17 +66,75 @@ class TaskViewSet(ModelViewSet):
         send_mail(
                     'Hello!',
                     'A task was assigned to you!'
-                    , 'artemkka2280@gmail.com',
+                    , EMAIL_HOST_USER,
                     [user.email],
                 )
 
         return Response(TaskSerializer(task).data)
-    #
-    # @action(methods=['post'], detail=True, serializer_class=Serializer)
-    # def start(self, request, *args, **kwargs):
-    #     task = self.get_object()
-    #     user = request.user
-    #     return Response('Done')
+
+    @action(methods=['post'], detail=True, serializer_class=Serializer)
+    def start_time_log(self, request, *args, **kwargs):
+        task = self.get_object()
+        user = request.user
+
+        log = Timelog.objects.filter(task=task).last()
+
+        if log is not None and log.is_running is False:
+            raise ValidationError('You cannot start task')
+        else:
+            log = Timelog.objects.create(
+                task=task,
+                start=timezone.now(),
+                stop=None,
+                duration=None,
+                is_running=True,
+                owner=user
+            )
+
+            log.save()
+
+            return Response({'status': HTTP_200_OK})
+
+    @action(methods=['post'], detail=True, serializer_class=Serializer)
+    def stop_time_log(self, request, *args, **kwargs):
+        task = self.get_object()
+
+        log = Timelog.objects.filter(task=task).last()
+
+        if log.is_running is False and log.stop is not None:
+            raise ValidationError('You cannot stop task')
+        else:
+            log.stop = timezone.now()
+            log.is_running = False
+            log.duration = (log.stop - log.start).seconds / 60
+            log.save()
+
+            return Response({'status': HTTP_200_OK, 'time spent': log.duration})
+
+    @action(methods=['post'], detail=True, serializer_class=ManualTimeLogSerializer)
+    def manual_time_log(self, request, *args, **kwargs):
+        task = self.get_object()
+        user = request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        log = Timelog.objects.filter(task=task).last()
+
+        if log is not None and log.is_running is True:
+            raise ValidationError('You cannot start task')
+        else:
+            log = Timelog.objects.create(
+                task=task,
+                start=validated_data['start'],
+                stop=validated_data['start'] + timezone.timedelta(minutes=validated_data['duration']),
+                duration=validated_data['duration'],
+                is_running=False,
+                owner=user
+            )
+
+            log.save()
+
+            return Response({'status': HTTP_200_OK, 'time spent': log.duration})
 
 
 class SearchTaskView(GenericAPIView):
