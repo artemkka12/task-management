@@ -114,7 +114,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-# DATE_FORMAT = "%Y-%m-%d %H:%m"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':
@@ -123,8 +122,10 @@ REST_FRAMEWORK = {
         ('rest_framework.permissions.ISAuthenticated',),
     'DEFAULT_RENDERS_CLASSES':
         ('rest_framework.renders.JSONRenderer',),
-    # "DATE_INPUT_FORMATS": [("%m"), ],
-
+    'TEST_REQUEST_RENDERER_CLASSES': [
+        'rest_framework.renderers.MultiPartRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.TemplateHTMLRenderer'],
 }
 
 JWT_AUTH = {

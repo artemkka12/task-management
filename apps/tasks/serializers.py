@@ -18,16 +18,16 @@ class AssignTaskSerializer(serializers.ModelSerializer):
         fields = ('owner', )
 
 
+class TopTasksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ('id', 'title')
+
+
 class TimeLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timelog
-        fields = '__all__'
-        extra_kwargs = {
-            'task': {'read_only': True},
-            'start': {'read_only': True},
-            'stop': {'read_only': True},
-            'owner': {'read_only': True},
-        }
+        fields = ('id', 'owner', 'started_at', 'stopped_at', 'duration')
 
 
 class TimerSerializer(serializers.ModelSerializer):
@@ -50,6 +50,6 @@ class ManualTimeLogSerializer(serializers.ModelSerializer):
         fields = '__all__'
         extra_kwargs = {
             'task': {'read_only': True},
-            'stop': {'read_only': True},
+            'stopped_at': {'read_only': True},
             'owner': {'read_only': True},
         }

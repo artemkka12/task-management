@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.db.models import Sum, Avg
 from django.utils import timezone
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
@@ -13,7 +13,8 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.viewsets import ModelViewSet
 
 from apps.tasks.models import Task, Timelog, Timer
-from apps.tasks.serializers import (TaskSerializer, AssignTaskSerializer, ManualTimeLogSerializer)
+from apps.tasks.serializers import (TaskSerializer, AssignTaskSerializer, ManualTimeLogSerializer, TimeLogSerializer,
+                                    TopTasksSerializer)
 from config.settings import EMAIL_HOST_USER
 
 
@@ -24,12 +25,16 @@ class TaskViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         user = request.user
-        data = request.data
-        task = Task.objects.create(title=data['title'], description=data['description'], owner=user)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        task = Task.objects.create(title=validated_data['title'], description=validated_data['description'],
+                                   owner=user, completed=validated_data['completed'])
         task.save()
         return Response(TaskSerializer(task).data)
 
-    @action(methods=['patch'], detail=True, serializer_class=TaskSerializer)
+    @action(methods=['patch'], detail=True, serializer_class=Serializer)
     def complete_task(self, request, *args, **kwargs):
         task = self.get_object()
         task.completed = True
@@ -82,21 +87,6 @@ class TaskViewSet(ModelViewSet):
         )
         timer.save()
         timer.start()
-        # log = Timelog.objects.filter(task=task).last()
-        #
-        # if log is not None and log.is_running is False:
-        #     raise ValidationError('You cannot start task')
-        # else:
-        #     log = Timelog.objects.create(
-        #         task=task,
-        #         start=timezone.now(),
-        #         stop=None,
-        #         duration=None,
-        #         is_running=True,
-        #         owner=user
-        #     )
-        #
-        #     log.save()
 
         return Response({'status': HTTP_200_OK})
 
@@ -124,48 +114,52 @@ class TaskViewSet(ModelViewSet):
 
         return Response({'status': HTTP_200_OK, 'time spent': timer.total_duration})
 
+    @action(methods=['post'], detail=True, serializer_class=ManualTimeLogSerializer)
+    def manual_time_log(self, request, *args, **kwargs):
+        task = self.get_object()
+        user = request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        # log = Timelog.objects.filter(task=task).last()
+        #
+        # # if log is not None and log.is_running is True:
+        # #     raise ValidationError('You cannot start task')
+        # # else:
+        log = Timelog.objects.create(
+            task=task,
+            owner=user,
+            started_at=validated_data['started_at'],
+            duration=validated_data['duration'],
+            stopped_at=validated_data['started_at'] + validated_data['duration'],
+        )
 
+        log.save()
 
-    # @action(methods=['post'], detail=True, serializer_class=Serializer)
-    # def stop_time_log(self, request, *args, **kwargs):
-    #     task = self.get_object()
-    #
-    #     log = Timelog.objects.filter(task=task).last()
-    #
-    #     if log.is_running is False and log.stop is not None:
-    #         raise ValidationError('You cannot stop task')
-    #     else:
-    #         log.stop = timezone.now()
-    #         log.is_running = False
-    #         log.duration = (log.stop - log.start).seconds / 60
-    #         log.save()
-    #
-    #         return Response({'status': HTTP_200_OK, 'time spent': log.duration})
-    #
-    # @action(methods=['post'], detail=True, serializer_class=ManualTimeLogSerializer)
-    # def manual_time_log(self, request, *args, **kwargs):
-    #     task = self.get_object()
-    #     user = request.user
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     validated_data = serializer.validated_data
-    #     log = Timelog.objects.filter(task=task).last()
-    #
-    #     if log is not None and log.is_running is True:
-    #         raise ValidationError('You cannot start task')
-    #     else:
-    #         log = Timelog.objects.create(
-    #             task=task,
-    #             start=validated_data['start'],
-    #             stop=validated_data['start'] + timezone.timedelta(minutes=validated_data['duration']),
-    #             duration=validated_data['duration'],
-    #             is_running=False,
-    #             owner=user
-    #         )
-    #
-    #         log.save()
-    #
-    #         return Response({'status': HTTP_200_OK, 'time spent': log.duration})
+        return Response({'status': HTTP_200_OK, 'time spent': log.duration})
+
+    @action(methods=['get'], detail=True, serializer_class=TimeLogSerializer)
+    def time_spent_by_task(self, request, *args, **kwargs):
+        task = self.get_object()
+        time_spent = Timelog.objects.filter(task=task).aggregate(sum=Sum('duration'))
+
+        return Response({'time spent': time_spent})
+
+    @action(methods=['get'], detail=False)
+    def amount_by_last_month(self, request, *args, **kwargs):
+        last_month = timezone.now()-timezone.timedelta(days=30)
+        amount_time = Timelog.objects.filter(started_at__gt=last_month).aggregate(sum=Sum('duration'))
+
+        return Response({'amount logged time by last month': amount_time})
+
+    @action(methods=['get'], detail=False, serializer_class=TopTasksSerializer)
+    def top_tasks_by_last_month(self, request, *args, **kwargs):
+        last_month = timezone.now()-timezone.timedelta(days=30)
+        tasks = Task.objects.filter(timelog__started_at__gt=last_month).annotate(sum=Sum('timelog__duration'))
+        tasks = tasks.order_by('-sum')[:20]
+
+        return Response(TopTasksSerializer(tasks, many=True).data)
+
 
 class SearchTaskView(GenericAPIView):
     serializer_class = TaskSerializer
