@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 from rest_framework.test import APITestCase
 
-from apps.tasks.models import Task
+from apps.tasks.models import Task, Timer
 
 
 class TaskTests(APITestCase):
@@ -196,3 +196,25 @@ class TaskTests(APITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         task = Task.objects.get(id=1)
         self.assertEqual(task.completed, True)
+
+    def test_time_log(self):
+        self.test_create_task()
+
+        """Start timer"""
+
+        response = self.client.post('/task/tasks/1/start_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        timer = Timer.objects.filter(task_id=1, owner_id=1).last()
+        self.assertEqual(timer.is_stopped, False)
+        self.assertEqual(timer.is_running, True)
+
+        time.sleep(5)
+        """Pause timer"""
+
+        response = self.client.post('/task/tasks/1/pause_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        timer = Timer.objects.filter(task_id=1, owner_id=1).last()
+        self.assertEqual(timer.is_stopped, False)
+        self.assertEqual(timer.is_running, False)
+
+

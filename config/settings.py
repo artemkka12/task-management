@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -126,6 +125,14 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.MultiPartRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.TemplateHTMLRenderer'],
+
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend',
+                                'rest_framework.filters.SearchFilter',
+                                'rest_framework.filters.OrderingFilter',
+                                ]
+
 }
 
 JWT_AUTH = {
@@ -136,7 +143,7 @@ JWT_AUTH = {
     'JWT_ALLOW_REFRESH': True,
 
     # this is the maximum time AFTER the token was issued that
-    # it can be refreshed.  exprired tokens can't be refreshed.
+    # it can be refreshed.  exprired tokens can't be refreshed.DjangoFilterBackend
     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
 
     'JWT_VERIFY_EXPIRATION': False,

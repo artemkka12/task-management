@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-from django.db.models import Sum, Avg
+from django.db.models import Sum
 from django.utils import timezone
+from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -21,18 +22,17 @@ from config.settings import EMAIL_HOST_USER
 class TaskViewSet(ModelViewSet):
     serializer_class = TaskSerializer
     queryset = Task.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
+    filter_fields = ('title', 'owner', 'completed')
+    ordering = ('id', 'title',)
+    search_fields = ('title',)
 
     def create(self, request, *args, **kwargs):
-        user = request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
 
-        task = Task.objects.create(title=validated_data['title'], description=validated_data['description'],
-                                   owner=user, completed=validated_data['completed'])
-        task.save()
-        return Response(TaskSerializer(task).data)
+        serializer.save(owner=request.user)
+        return Response(serializer.data)
 
     @action(methods=['patch'], detail=True, serializer_class=Serializer)
     def complete_task(self, request, *args, **kwargs):
@@ -42,40 +42,34 @@ class TaskViewSet(ModelViewSet):
 
         users = User.objects.filter(comments__task=task.pk).distinct()
         for user in users:
-            send_mail(
-                'Hello!',
-                'Task which you commented was completed!'
-                , EMAIL_HOST_USER,
-                [user.email],
-            )
+            user.email_user('Hello!',
+                            'Task which you commented was completed!'
+                            , EMAIL_HOST_USER, )
 
         return Response({'status': HTTP_200_OK})
 
     @action(methods=['get'], detail=False, serializer_class=TaskSerializer)
     def view_my_tasks(self, request, *args, **kwargs):
-        tasks = Task.objects.filter(owner=request.user)
+        tasks = self.queryset.objects.filter(owner=request.user)
         return Response(TaskSerializer(tasks, many=True).data)
 
     @action(methods=['get'], detail=False, serializer_class=TaskSerializer)
     def view_completed_tasks(self, request, *args, **kwargs):
-        tasks = Task.objects.filter(completed=True)
+        tasks = self.queryset.objects.filter(completed=True)
         return Response(TaskSerializer(tasks, many=True).data)
 
     @action(methods=['patch'], detail=True, serializer_class=AssignTaskSerializer)
     def assign_task_to_user(self, request, *args, **kwargs):
-        task = self.get_object()
+        serializer = self.get_serializer(data=request.data, instance=self.get_object())
         user = get_object_or_404(User.objects.filter(pk=request.data['owner']))
-        task.owner = user
-        task.save()
+        serializer.owner = user
+        serializer.save()
 
-        send_mail(
-                    'Hello!',
-                    'A task was assigned to you!'
-                    , EMAIL_HOST_USER,
-                    [user.email],
-                )
+        user.email_user('Hello!',
+                        'A task was assigned to you!'
+                        , EMAIL_HOST_USER, )
 
-        return Response(TaskSerializer(task).data)
+        return Response(TaskSerializer(serializer).data)
 
     @action(methods=['post'], detail=True, serializer_class=Serializer)
     def start_time_log(self, request, *args, **kwargs):
@@ -147,14 +141,14 @@ class TaskViewSet(ModelViewSet):
 
     @action(methods=['get'], detail=False)
     def amount_by_last_month(self, request, *args, **kwargs):
-        last_month = timezone.now()-timezone.timedelta(days=30)
+        last_month = timezone.now() - timezone.timedelta(days=30)
         amount_time = Timelog.objects.filter(started_at__gt=last_month).aggregate(sum=Sum('duration'))
 
         return Response({'amount logged time by last month': amount_time})
 
     @action(methods=['get'], detail=False, serializer_class=TopTasksSerializer)
     def top_tasks_by_last_month(self, request, *args, **kwargs):
-        last_month = timezone.now()-timezone.timedelta(days=30)
+        last_month = timezone.now() - timezone.timedelta(days=30)
         tasks = Task.objects.filter(timelog__started_at__gt=last_month).annotate(sum=Sum('timelog__duration'))
         tasks = tasks.order_by('-sum')[:20]
 
