@@ -61,15 +61,14 @@ class TaskViewSet(ModelViewSet):
     @action(methods=['patch'], detail=True, serializer_class=AssignTaskSerializer)
     def assign_task_to_user(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, instance=self.get_object())
-        user = get_object_or_404(User.objects.filter(pk=request.data['owner']))
-        serializer.owner = user
-        serializer.save()
+        serializer.is_valid(raise_exception=True)
+        task = serializer.save()
 
-        user.email_user('Hello!',
+        task.owner.email_user('Hello!',
                         'A task was assigned to you!'
                         , EMAIL_HOST_USER, )
 
-        return Response(TaskSerializer(serializer).data)
+        return Response(TaskSerializer(task).data)
 
     @action(methods=['post'], detail=True, serializer_class=Serializer)
     def start_time_log(self, request, *args, **kwargs):
