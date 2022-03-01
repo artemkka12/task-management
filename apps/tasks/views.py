@@ -1,10 +1,7 @@
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
 from django.db.models import Sum
 from django.utils import timezone
-from rest_framework import filters
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -65,8 +62,8 @@ class TaskViewSet(ModelViewSet):
         task = serializer.save()
 
         task.owner.email_user('Hello!',
-                        'A task was assigned to you!'
-                        , EMAIL_HOST_USER, )
+                              'A task was assigned to you!'
+                              , EMAIL_HOST_USER, )
 
         return Response(TaskSerializer(task).data)
 
