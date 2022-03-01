@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'apps.users',
     'apps.tasks',
-    'apps.common',
     'apps.comments',
 ]
 

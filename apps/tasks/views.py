@@ -47,12 +47,12 @@ class TaskViewSet(ModelViewSet):
 
     @action(methods=['get'], detail=False, serializer_class=TaskSerializer)
     def view_my_tasks(self, request, *args, **kwargs):
-        tasks = self.queryset.objects.filter(owner=request.user)
+        tasks = self.queryset.filter(owner=request.user)
         return Response(TaskSerializer(tasks, many=True).data)
 
     @action(methods=['get'], detail=False, serializer_class=TaskSerializer)
     def view_completed_tasks(self, request, *args, **kwargs):
-        tasks = self.queryset.objects.filter(completed=True)
+        tasks = self.queryset.filter(completed=True)
         return Response(TaskSerializer(tasks, many=True).data)
 
     @action(methods=['patch'], detail=True, serializer_class=AssignTaskSerializer)
@@ -146,7 +146,7 @@ class TaskViewSet(ModelViewSet):
     def top_tasks_by_last_month(self, request, *args, **kwargs):
         last_month = timezone.now() - timezone.timedelta(days=30)
         tasks = Task.objects.filter(timelog__started_at__gt=last_month).annotate(sum=Sum('timelog__duration'))
-        tasks = tasks.order_by('-sum')[:20]
+        tasks = tasks.order_by('sum')[:20]
 
         return Response(TopTasksSerializer(tasks, many=True).data)
 

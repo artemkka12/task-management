@@ -25,8 +25,8 @@ class AccountTests(APITestCase):
         }
 
         response = self.client.post('/user/register/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(User.objects.count(), 2)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(User.objects.count(), 1)
 
     def test_create_access_token(self):
         """Create a user"""
@@ -59,4 +59,4 @@ class AccountTests(APITestCase):
 
     def test_get_all_users(self):
         response = self.client.get('/user/users-list/', data={'format': 'json'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

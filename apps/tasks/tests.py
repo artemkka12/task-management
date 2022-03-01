@@ -1,10 +1,12 @@
+import datetime
 import time
 
 from django.contrib.auth.models import User
+from pytz import UTC
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 from rest_framework.test import APITestCase
 
-from apps.tasks.models import Task, Timer
+from apps.tasks.models import Task, Timer, Timelog
 
 
 class TaskTests(APITestCase):
@@ -159,11 +161,11 @@ class TaskTests(APITestCase):
         self.test_create_task()
 
         data = {
-          "first_name": "string",
-          "last_name": "string",
-          "username": "string1",
-          "email": "faer.faer.2006@mail.ru",
-          "password": "string"
+            "first_name": "string",
+            "last_name": "string",
+            "username": "string1",
+            "email": "faer.faer.2006@mail.ru",
+            "password": "string"
         }
 
         response = self.client.post('/user/register/', data, format='json')
@@ -217,4 +219,78 @@ class TaskTests(APITestCase):
         self.assertEqual(timer.is_stopped, False)
         self.assertEqual(timer.is_running, False)
 
+        """Start timer again"""
 
+        response = self.client.post('/task/tasks/1/start_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        timer = Timer.objects.filter(task_id=1, owner_id=1).last()
+        self.assertEqual(timer.is_stopped, False)
+        self.assertEqual(timer.is_running, True)
+
+        time.sleep(3)
+
+        response = self.client.post('/task/tasks/1/stop_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        timer = Timer.objects.filter(task_id=1, owner_id=1).last()
+        self.assertEqual(timer.is_stopped, True)
+        self.assertEqual(timer.is_running, False)
+        timelog = Timelog.objects.all()
+        self.assertEqual(timelog.count(), 2)
+
+    def test_manual_time_log(self):
+        self.test_create_task()
+
+        data = {
+            "started_at": "2022-03-01T12:34:05.705Z",
+            "duration": 2
+        }
+
+        response = self.client.post('/task/tasks/1/manual_time_log/', data, 'json')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        timelog = Timelog.objects.filter(task_id=1, owner_id=1).last()
+        self.assertEqual(timelog.duration, datetime.timedelta(seconds=2))
+        self.assertEqual(timelog.started_at, datetime.datetime(2022, 3, 1, 12, 34, 5, 705000, tzinfo=UTC))
+        self.assertEqual(timelog.stopped_at, datetime.datetime(2022, 3, 1, 12, 34, 5, 705000, tzinfo=UTC)
+                         + datetime.timedelta(seconds=2))
+
+    def test_time_spent_by_task(self):
+        self.test_time_log()
+
+        response = self.client.get('/task/tasks/1/time_spent_by_task/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+    def test_amount_logged_time(self):
+        self.test_time_log()
+
+        response = self.client.get('/task/tasks/amount_by_last_month/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+    def test_top_task_by_last_month(self):
+        self.test_time_log()
+
+        data = {
+            "title": "string",
+            "description": "string",
+            "completed": True
+        }
+        response = self.client.post('/task/tasks/', data, 'json')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        response = self.client.post('/task/tasks/2/start_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        time.sleep(8)
+
+        response = self.client.post('/task/tasks/2/pause_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        response = self.client.post('/task/tasks/2/start_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        time.sleep(1)
+
+        response = self.client.post('/task/tasks/2/stop_time_log/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        response = self.client.get('/task/tasks/top_tasks_by_last_month/')
+        self.assertEqual(response.status_code, HTTP_200_OK)
