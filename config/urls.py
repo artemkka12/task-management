@@ -1,6 +1,8 @@
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
+from config import settings
 from helpers import schema_view
 
 urlpatterns = [
@@ -9,4 +11,4 @@ urlpatterns = [
     path('user/', include('apps.users.urls')),
     path('task/', include('apps.tasks.urls')),
     path('comment/', include('apps.comments.urls')),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
