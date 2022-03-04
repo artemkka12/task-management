@@ -1,9 +1,10 @@
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import Serializer
 
@@ -111,11 +112,7 @@ class TaskViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-        # log = Timelog.objects.filter(task=task).last()
-        #
-        # # if log is not None and log.is_running is True:
-        # #     raise ValidationError('You cannot start task')
-        # # else:
+
         log = Timelog.objects.create(
             task=task,
             owner=user,
@@ -142,6 +139,7 @@ class TaskViewSet(ModelViewSet):
 
         return Response({'amount logged time by last month': amount_time})
 
+    @method_decorator(cache_page(60))
     @action(methods=['get'], detail=False, serializer_class=TopTasksSerializer)
     def top_tasks_by_last_month(self, request, *args, **kwargs):
         last_month = timezone.now() - timezone.timedelta(days=30)
@@ -149,13 +147,3 @@ class TaskViewSet(ModelViewSet):
         tasks = tasks.order_by('sum')[:20]
 
         return Response(TopTasksSerializer(tasks, many=True).data)
-
-
-class SearchTaskView(GenericAPIView):
-    serializer_class = TaskSerializer
-    queryset = Task.objects.all()
-
-    def get(self, request, value):
-        tasks = Task.objects.filter(title__icontains=value)
-
-        return Response(TaskSerializer(tasks, many=True).data)

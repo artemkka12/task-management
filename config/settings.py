@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -79,20 +78,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'ebsintegrator2022',
         'HOST': 'db',
         'PORT': 5432,
-        # 'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': 'postgres',
-        # 'USER': 'postgres',
-        # 'PASSWORD': 'ebsintegrator2022',
-        # 'HOST': 'localhost',
-        # 'PORT': 5432,
     }
 }
 
@@ -138,26 +129,12 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.TemplateHTMLRenderer'],
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend',
                                 'rest_framework.filters.SearchFilter',
                                 'rest_framework.filters.OrderingFilter',
                                 ]
 
-}
-
-JWT_AUTH = {
-    # how long the original token is valid for
-    'JWT_EXPIRATION_DELTA': timedelta(days=2),
-
-    # allow refreshing of tokens
-    'JWT_ALLOW_REFRESH': True,
-
-    # this is the maximum time AFTER the token was issued that
-    # it can be refreshed.  exprired tokens can't be refreshed.DjangoFilterBackend
-    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
-
-    'JWT_VERIFY_EXPIRATION': False,
 }
 
 SWAGGER_SETTINGS = {
@@ -169,11 +146,25 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        "LOCATION": "redis://redis",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.default.DefaultClient',
+        }
+    }
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR,'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -184,6 +175,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'artemkka2280@gmail.com'
-EMAIL_HOST_PASSWORD = 'redmi62006'
+EMAIL_HOST_PASSWORD = 'password'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False

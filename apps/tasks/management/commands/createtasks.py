@@ -1,10 +1,9 @@
-import time
-
 from django.contrib.auth.models import User
 from django.core.management import BaseCommand
+from django.utils import timezone
 from faker import Faker
 
-from apps.tasks.models import Task, Timer
+from apps.tasks.models import Task, Timelog
 
 
 class Command(BaseCommand):
@@ -20,11 +19,14 @@ class Command(BaseCommand):
                 completed=False,
                 owner=user
             )
-            timer = Timer.objects.create(task=task, owner=user)
-            timer.save()
-            timer.start()
-            time.sleep(0.0001)
-            timer.pause()
-            timer.start()
-            time.sleep(0.0002)
-            timer.stop()
+
+            task.save()
+
+            timelog = Timelog.objects.create(
+                task=task,
+                owner=user,
+                started_at=timezone.now(),
+                stopped_at=timezone.now() + timezone.timedelta(seconds=2),
+            )
+            timelog.duration = timelog.stopped_at - timelog.started_at
+            timelog.save()
