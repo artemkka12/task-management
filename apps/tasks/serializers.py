@@ -16,7 +16,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class RetrieveTaskSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = CommentSerializer(many=True, read_only=True, required=False)
 
     class Meta:
         model = Task
