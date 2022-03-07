@@ -49,13 +49,6 @@ class TaskTests(APITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(Task.objects.count(), 3)
 
-    def test_get_tasks_by_search(self):
-        self.test_create_task()
-
-        response = self.client.get('/task/search-task/{st}', data={'format': 'json'})
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(Task.objects.count(), 1)
-
     def test_get_completed_tasks(self):
         self.test_access_token()
 
@@ -211,6 +204,7 @@ class TaskTests(APITestCase):
         self.assertEqual(timer.is_running, True)
 
         time.sleep(5)
+
         """Pause timer"""
 
         response = self.client.post('/task/tasks/1/pause_time_log/')

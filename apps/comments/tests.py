@@ -43,21 +43,3 @@ class CommentTest(APITestCase):
         task_id = response_json['task']
         comment = Comment.objects.get(pk=1)
         self.assertEqual(task_id, comment.task_id)
-
-    def test_get_comments_by_task(self):
-        self.test_create_task()
-
-        data = {
-            "task": 1,
-            "text": "string"
-        }
-
-        response = self.client.post('/comment/create-comment/', data, 'json')
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        response = self.client.post('/comment/create-comment/', data, 'json')
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        response = self.client.get('/comment/task/1/')
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        response_json = response.json()
-        self.assertEqual(len(response_json), 2)

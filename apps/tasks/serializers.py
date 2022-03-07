@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
+from apps.comments.serializers import CommentSerializer
 from apps.tasks.models import Task, Timelog, Timer
+from apps.users.serializers import UserSerializer
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -10,6 +12,15 @@ class TaskSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'owner': {'read_only': True},
         }
+
+
+class RetrieveTaskSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Task
+        fields = ('id', 'title', 'description', 'completed', 'owner', 'comments')
 
 
 class AssignTaskSerializer(serializers.ModelSerializer):
