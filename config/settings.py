@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -71,6 +72,13 @@ TEMPLATES = [
     },
 ]
 
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar', ]
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
+    INTERNAL_IPS = [
+        '127.0.0.1',
+    ]
+
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
@@ -82,7 +90,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'ebsintegrator2022',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': 5432,
     }
 }

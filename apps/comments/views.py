@@ -16,11 +16,11 @@ class CreateCommentView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         comment = serializer.save(owner=request.user)
 
-        user = comment.task.owner
+        # user = comment.task.owner
 
-        user.email_user(
-            'Hello!',
-            'Your task was commented!'
-            , EMAIL_HOST_USER, )
+        # user.email_user(
+        #     'Hello!',
+        #     'Your task was commented!'
+        #     , EMAIL_HOST_USER, )
 
         return Response(serializer.data)
