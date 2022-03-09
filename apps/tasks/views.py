@@ -129,7 +129,7 @@ class TaskViewSet(ModelViewSet):
 
     @action(methods=['get'], detail=False)
     def amount_by_last_month(self, request, *args, **kwargs):
-        last_month = timezone.now() - timezone.timedelta(days=30)
+        last_month = timezone.now() - timezone.timedelta(days=timezone.now().day)
         amount_time = Timelog.objects.filter(started_at__gt=last_month).aggregate(sum=Sum('duration'))
 
         return Response({'amount_logged_time_by_last_month': amount_time})
