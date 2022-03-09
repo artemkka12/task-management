@@ -39,12 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'rest_framework.authtoken',
+    'minio_storage',
     'drf_yasg',
+
     'apps.users',
     'apps.tasks',
     'apps.comments',
+    'apps.gallery',
 ]
 
 MIDDLEWARE = [
@@ -176,6 +180,15 @@ SESSION_CACHE_ALIAS = "default"
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
+
+MINIO_STORAGE_ENDPOINT = '10.1.1.174:9000'
+MINIO_STORAGE_ACCESS_KEY = 'H0T3P3FNGDTFFSR7353I'
+MINIO_STORAGE_SECRET_KEY = 'lF7Vc8jiRntTaIVlYAX+3+5PUey+5xmrcvpegtzd'
+MINIO_STORAGE_USE_HTTPS = False
+MINIO_STORAGE_MEDIA_BUCKET_NAME = 'gallery'
+MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

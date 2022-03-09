@@ -11,6 +11,7 @@ urlpatterns = [
                   path('user/', include('apps.users.urls')),
                   path('', include('apps.tasks.urls')),
                   path('comment/', include('apps.comments.urls')),
+                  path('gallery/', include('apps.gallery.urls')),
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
