@@ -41,20 +41,6 @@ class TimeLogSerializer(serializers.ModelSerializer):
         fields = ('id', 'owner', 'started_at', 'stopped_at', 'duration')
 
 
-class TimerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Timer
-        fields = '__all__'
-        extra_kwargs = {
-            'owner': {'read_only': True},
-            'task': {'read_only': True},
-            'is_stopped': {'read_only': True},
-            'is_running': {'read_only': True},
-            'started_at': {'read_only': True},
-            'duration': {'read_only': True},
-        }
-
-
 class ManualTimeLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timelog
