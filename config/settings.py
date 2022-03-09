@@ -184,8 +184,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
 
 MINIO_STORAGE_ENDPOINT = '10.1.1.174:9000'
-MINIO_STORAGE_ACCESS_KEY = 'H0T3P3FNGDTFFSR7353I'
-MINIO_STORAGE_SECRET_KEY = 'lF7Vc8jiRntTaIVlYAX+3+5PUey+5xmrcvpegtzd'
+MINIO_STORAGE_ACCESS_KEY = os.getenv("MINIO_STORAGE_ACCESS_KEY")
+MINIO_STORAGE_SECRET_KEY = os.getenv("MINIO_STORAGE_SECRET_KEY")
 MINIO_STORAGE_USE_HTTPS = False
 MINIO_STORAGE_MEDIA_BUCKET_NAME = 'gallery'
 MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
@@ -196,18 +196,9 @@ MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-<<<<<<< HEAD
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'artemkka2280@gmail.com'
-EMAIL_HOST_PASSWORD = 'password'
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-=======
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = os.getenv("EMAIL_PORT")
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS").lower() in ('true',)
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL").lower() in ('true',)
->>>>>>> development
