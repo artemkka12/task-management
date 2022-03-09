@@ -137,7 +137,7 @@ class TaskViewSet(ModelViewSet):
     @method_decorator(cache_page(60))
     @action(methods=['get'], detail=False, serializer_class=TopTasksSerializer)
     def top_tasks_by_last_month(self, request, *args, **kwargs):
-        last_month = timezone.now() - timezone.timedelta(days=30)
+        last_month = timezone.now() - timezone.timedelta(days=timezone.now().day)
         tasks = Task.objects.filter(timelog__started_at__gt=last_month).annotate(sum=Sum('timelog__duration'))
         tasks = tasks.order_by('sum')[:20]
 
