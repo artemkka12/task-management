@@ -1,0 +1,64 @@
+version: "3"
+
+services:
+  db:
+    image: postgres
+    command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.track=all -c max_connections=200
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=ebsintegrator2022
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+
+  pghero:
+    image: ankane/pghero
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      DATABASE_URL: postgres://postgres:ebsintegrator2022@db:5432/postgres
+    depends_on:
+      - db
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "8090:80"
+    expose:
+      - "8090"
+    depends_on:
+      - db
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"
+
+  web:
+    build: .
+    command: bash startup.sh
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=ebsintegrator2022
+    depends_on:
+      - db
+      - redis
+    links:
+      - db:db
+      - redis:redis
