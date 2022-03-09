@@ -20,7 +20,7 @@ class Timelog(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     started_at = models.DateTimeField(null=True, blank=True)
     stopped_at = models.DateTimeField(null=True, blank=True)
-    duration = models.DurationField(default=0)
+    duration = models.DurationField(default=timedelta())
 
     def __str__(self):
         return f'{self.task}'
