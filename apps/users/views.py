@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.shortcuts import render
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,6 +8,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.users.permissions import IsSuperUser
 from apps.users.serializers import UserSerializer, GetTokenSerializer
+
+
+def auth(request):
+    return render(request, template_name='oauth.html')
+
+
+def profile(request):
+    return render(request, template_name='profile.html')
 
 
 class UserRegisterView(GenericAPIView):

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'minio_storage',
     'drf_yasg',
+    'social_django',
 
     'apps.users',
     'apps.tasks',
@@ -66,7 +67,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['apps/users/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,6 +75,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -101,6 +104,16 @@ DATABASES = {
         'PORT': os.getenv("DB_PORT"),
     }
 }
+
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.github.GithubOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_GITHUB_KEY = 'afac3331ab1813ec1c70'
+SOCIAL_AUTH_GITHUB_SECRET = 'd647eed584afa564c7255aec76c9c1335262624f'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -133,7 +146,9 @@ USE_TZ = False
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':
-        ('rest_framework_simplejwt.authentication.JWTAuthentication',),
+        ('rest_framework_simplejwt.authentication.JWTAuthentication',
+         'rest_framework.authentication.BasicAuthentication',
+         'rest_framework.authentication.SessionAuthentication',),
     'DEFAULT_PERMISSIONS_CLASSES':
         ('rest_framework.permissions.ISAuthenticated',),
     'DEFAULT_RENDERS_CLASSES':
@@ -162,18 +177,18 @@ SWAGGER_SETTINGS = {
     }
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        "LOCATION": "redis://redis",
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.default.DefaultClient',
-        }
-    }
-}
-
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         "LOCATION": "redis://redis",
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.default.DefaultClient',
+#         }
+#     }
+# }
+#
+# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# SESSION_CACHE_ALIAS = "default"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
