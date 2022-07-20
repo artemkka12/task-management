@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from rest_framework.exceptions import ValidationError
+from django.shortcuts import render
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -7,6 +7,18 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.users.permissions import IsSuperUser
 from apps.users.serializers import UserSerializer, GetTokenSerializer
+
+
+def auth_github(request):
+    return render(request, template_name='auth_github.html')
+
+
+def profile_github(request):
+    return render(request, template_name='profile_github.html')
+
+
+def auth_google(request):
+    return render(request, 'auth_google.html')
 
 
 class UserRegisterView(GenericAPIView):

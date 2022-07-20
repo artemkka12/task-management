@@ -7,6 +7,6 @@ from apps.gallery.serializers import PictureSerializer
 
 class PictureViewSet(ModelViewSet):
     parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.FileUploadParser)
-    renderer_classes = (renderers.JSONRenderer,)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer)
     queryset = Picture.objects.all()
     serializer_class = PictureSerializer
