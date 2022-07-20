@@ -1,10 +1,23 @@
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.permissions import AllowAny
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
 
+from . import settings
 from apps.users.views import auth_github, profile_github, auth_google
-from config import settings
-from helpers import schema_view
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="API Documentation",
+        default_version='v1',
+        description="Enjoy",
+    ),
+    validators=['ssv'],
+    public=True,
+    permission_classes=(AllowAny,)
+)
 
 urlpatterns = [
                   path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

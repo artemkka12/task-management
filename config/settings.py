@@ -22,6 +22,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,7 +62,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['apps/users/templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -179,10 +180,10 @@ AUTHENTICATION_BACKENDS = (
 
 )
 
-SOCIAL_AUTH_GITHUB_KEY = 'afac3331ab1813ec1c70'
-SOCIAL_AUTH_GITHUB_SECRET = 'd647eed584afa564c7255aec76c9c1335262624f'
+SOCIAL_AUTH_GITHUB_KEY = os.getenv('SOCIAL_AUTH_GITHUB_KEY')
+SOCIAL_AUTH_GITHUB_SECRET = os.getenv('SOCIAL_AUTH_GITHUB_SECRET')
 
-SITE_ID = 3
+SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 
 # Additional configuration settings
@@ -234,3 +235,33 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS").lower() in ('true',)
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL").lower() in ('true',)
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Task Management System",
+    "site_header": "Task Management System",
+    "site_brand": "Task Management System",
+    "site_icon": None,
+
+    "welcome_sign": "Welcome to the Task Management System",
+    "copyright": "Artem Pryatka",
+
+    "topmenu_links": [
+    ],
+
+    "usermenu_links": [
+        {"model": "auth.user"}
+    ],
+
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+
+    "custom_links": {},
+
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs"
+    },
+}
